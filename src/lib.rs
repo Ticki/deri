@@ -75,15 +75,24 @@ impl Func {
         use Constraint::*;
 
         match self {
+            // (f + g)' = f' + g'
             Add(f, g) => f.derivative() + g.derivative(),
+            // c' = 0
             Const(n) => Const(0.0),
             Constrainted(f, con) => f.derivative().rule(con),
+            // (ln f)' = f' / f
             Ln(f) => f.clone().derivative() / f.rule(Positive).rule(NonOne),
+            // (fg)' = f'g + fg'
             Mul(box f, box g) => f.clone().derivative() * g.clone() + f * g.derivative(),
+            // (-f)' = -f'
             Neg(f) => -f.derivative(),
+            // (f^g)' = f^g (f' g / f + g' ln f)
             Pow(box f, box g) => (f.clone() ^ g.clone()) * (f.clone().derivative() * g.clone() / f.clone() + g.derivative() * f.ln()),
+            // (f^-1)' = -f' / f^2
             Rec(box f) => -f.clone().derivative().rule(NonZero) / f.clone() / f,
+            // c' = 0
             Var(_) => Const(0.0),
+            // x' = 1
             X => Const(1.0),
         }
     }
